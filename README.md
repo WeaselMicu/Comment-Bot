@@ -1,4 +1,4 @@
-# Comment Bot
+# AnecbotalNYT Comment Bot
 This repository contains the code to run the [AnecbotalNYT](https://twitter.com/anecbotalnyt) News Bot on Twitter.  It's being open sourced as a reference implementation for other news bots that listen and respond on Twitter. 
 
 For more information on News Bots see the following article: 
