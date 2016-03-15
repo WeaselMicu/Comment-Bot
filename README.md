@@ -26,5 +26,6 @@ Before you can run the bot you must install the following dependencies (setting 
 - Pillow v 2.8.1 (may also rely on freetype, libjpeg, and libpng, or freetype-devel)
 
 **Running**  
-To set the bot up to run indefinitely but to continually output status information to file run a command like: `nohup python -u run.py > nohup.txt &`
+To set the bot up to run indefinitely but to continually output status information to file run a command like:
+- `nohup python -u run.py > nohup.txt &`
 
