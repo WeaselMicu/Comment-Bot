@@ -6,8 +6,11 @@ For more information on News Bots see the following article:
 
 This project makes extensive use of the code from the [CommentIQ repository](https://github.com/comp-journalism/commentIQ), but has been repurposed. 
 
+### Editorial Transparency
+
+
 ### Setup
-First clone the repository to your system. 
+If you'd like to run this bot (or repurpose it) first clone the repository to your system. 
 
 **Keys**  
 Rename `example-bot.conf` to `bot.conf` and add your Twitter API keys and NYT Community API keys (more instructions follow). 
