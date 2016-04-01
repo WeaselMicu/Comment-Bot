@@ -22,7 +22,7 @@ The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments 
 - The bot listens to the free Twitter stream for people tweeting a link containing "nytimes.com". It considers the first link it finds in the tweet only. Tweets that are retweets, tweets not in english, and tweets that refer to the bot's account are filtered out. The article link must have comments, and it must have 100 or more comments in order to be considered. Every 10th article link that meets these criteria will have a comment selected for the bot to tweet out. 
 
 *Personal Information*  
-- The bot does not share any personal information that is not available from the NYT Community API. The comments that the bot shares are attributed to the name and the location of the user who shared the comment. 
+- The bot does not collect any personal information that is not available from the NYT Community API. The comments that the bot shares are attributed to the name and the location of the user who shared the comment. 
 
 #### Model
 
@@ -34,7 +34,7 @@ The bot relies on the composition of three scores in order to rank and select th
 
 The three scores are weighted in a linear combination in order to calculate an overall "anecbotal" score for each comment. The weights are Length: 0.25, Readability: 0.25, Personal Experience: 0.50 in order to prioritize comments that have substantial personal experience scores. The final comment tweeted out is a random selection from the top 3 comments on an article according to the ranking. 
 
-**Additional Editorial Rules**  
+*Additional Editorial Rules*  
 - Comments with less than 25 words are filtered out as being too short. 
 - If the bot exhausts its NYT Community API limits for the day it goes to sleep for a full 24 hours before continuing. 
 
