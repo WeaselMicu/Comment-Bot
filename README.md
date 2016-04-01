@@ -14,8 +14,8 @@ The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments 
 [Nick Diakopoulos](http://www.nickdiakopoulos.com) [@ndiakopoulos](http://www.twitter.com/ndiakopoulos) from the Computational Journalism Lab at the University of Maryland is the author of AnecbotalNYT. The bot itself tweets autonomously once run. There is no editional human filtering or oversight of the bot. 
 
 **Input Data**  
-*Provenance*  
-- Data is drawn directly from the [NYT Community API](http://developer.nytimes.com/docs/community_api/The_Community_API_v3/) and consists of the raw comment text as well as some of the metadata of the comment such as the user name and location. Other data that the bot uses as input comes from Twitter. 
+
+Data is drawn directly from the [NYT Community API](http://developer.nytimes.com/docs/community_api/The_Community_API_v3/) and consists of the raw comment text as well as some of the metadata of the comment such as the user name and location. Other data that the bot uses as input comes from Twitter. 
 
 *Sampling*  
 - The bot only considers top level comments (and filters out comments that are responses to other comments) as they're more likely to be responding directly to the ideas in the article. 
@@ -25,6 +25,7 @@ The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments 
 - The bot does not collect any personal information that is not available from the NYT Community API. The comments that the bot shares are attributed to the name and the location of the user who shared the comment. 
 
 **Model**  
+
 The bot relies on the composition of three scores in order to rank and select the comments that it tweets. Each of these scores is calculated for each comment. This is how the scores are defined: 
 
 - *Length.* The Length score is computed as the number of words in a comment.
@@ -38,6 +39,7 @@ The three scores are weighted in a linear combination in order to calculate an o
 - If the bot exhausts its NYT Community API limits for the day it goes to sleep for a full 24 hours before continuing. 
 
 **Interface**  
+
 The bot is clearly labeled as a bot in its bio (and with a link to this page) in order to avoid any confusion. 
 
 
