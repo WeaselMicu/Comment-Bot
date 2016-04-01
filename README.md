@@ -41,7 +41,9 @@ The three scores are weighted in a linear combination in order to calculate an o
 ####Interface
 The bot is clearly labeled as a bot in its bio (and with a link to this page) in order to avoid any confusion. 
 
-### Setup
+-----
+
+## Setup
 If you'd like to run this bot (or repurpose it) first clone the repository to your system. 
 
 **Keys**  
