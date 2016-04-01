@@ -11,9 +11,9 @@ In addition to full source code transparency for the bot, a more accessible vers
 
 The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments made on NYTimes.com and make them more visible to people tweeting about those stories on Twitter. The hope is that some of the more thoughtful personal stories and opinions that people make in the comments can be interesting and engaging content on Twitter as well. 
 
-[Nick Diakopoulos](http://www.nickdiakopoulos.com) [@ndiakopoulos](http://www.twitter.com/ndiakopoulos) is the author of AnecbotalNYT, but the bot itself tweets autonomously once run. There is no editional human filtering or oversight of the bot. 
+[Nick Diakopoulos](http://www.nickdiakopoulos.com) [@ndiakopoulos](http://www.twitter.com/ndiakopoulos) from the Computational Journalism Lab at the University of Maryland is the author of AnecbotalNYT. The bot itself tweets autonomously once run. There is no editional human filtering or oversight of the bot. 
 
-#####Input Data
+####Input Data
 **Provenance** 
 - Data is drawn directly from the [NYT Community API](http://developer.nytimes.com/docs/community_api/The_Community_API_v3/) and consists of the raw comment text as well as some of the metadata of the comment such as the user name and location. Other data that the bot uses as input comes from Twitter. 
 
@@ -24,7 +24,7 @@ The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments 
 **Personal Information**  
 - The bot does not share any personal information that is not available from the NYT Community API. The comments that the bot shares are attributed to the name and the location of the user who shared the comment. 
 
-##### Model
+#### Model
 
 The bot relies on the composition of three scores in order to rank and select the comments that it tweets. Each of these scores is calculated for each comment. This is how the scores are defined: 
 
@@ -38,7 +38,7 @@ The three scores are weighted in a linear combination in order to calculate an o
 - Comments with less than 25 words are filtered out as being too short. 
 - If the bot exhausts its NYT Community API limits for the day it goes to sleep for a full 24 hours before continuing. 
 
-#####Interface
+####Interface
 The bot is clearly labeled as a bot in its bio (and with a link to this page) in order to avoid any confusion. 
 
 ### Setup
