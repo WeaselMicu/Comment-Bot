@@ -14,14 +14,14 @@ The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments 
 [Nick Diakopoulos](http://www.nickdiakopoulos.com) [@ndiakopoulos](http://www.twitter.com/ndiakopoulos) from the Computational Journalism Lab at the University of Maryland is the author of AnecbotalNYT. The bot itself tweets autonomously once run. There is no editional human filtering or oversight of the bot. 
 
 ####Input Data
-**Provenance** 
+*Provenance*  
 - Data is drawn directly from the [NYT Community API](http://developer.nytimes.com/docs/community_api/The_Community_API_v3/) and consists of the raw comment text as well as some of the metadata of the comment such as the user name and location. Other data that the bot uses as input comes from Twitter. 
 
-**Sampling**  
+*Sampling*  
 - The bot only considers top level comments (and filters out comments that are responses to other comments) as they're more likely to be responding directly to the ideas in the article. 
 - The bot listens to the free Twitter stream for people tweeting a link containing "nytimes.com". It considers the first link it finds in the tweet only. Tweets that are retweets, tweets not in english, and tweets that refer to the bot's account are filtered out. The article link must have comments, and it must have 100 or more comments in order to be considered. Every 10th article link that meets these criteria will have a comment selected for the bot to tweet out. 
 
-**Personal Information**  
+*Personal Information*  
 - The bot does not share any personal information that is not available from the NYT Community API. The comments that the bot shares are attributed to the name and the location of the user who shared the comment. 
 
 #### Model
