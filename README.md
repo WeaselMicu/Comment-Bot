@@ -7,6 +7,23 @@ For more information on News Bots see the following article:
 This project makes extensive use of the code from the [CommentIQ repository](https://github.com/comp-journalism/commentIQ), but has been repurposed. 
 
 ### Editorial Transparency
+The goal of AnecbotalNYT is to find interesting anecdotes from the NYT comments made on NYTimes.com and make them more visible to people tweeting about those stories on Twitter. The hope is that some of the more thoughtful personal stories and opinions that people make in the comments can be interesting and engaging content on Twitter as well. 
+
+[Nick Diakopoulos](http://www.nickdiakopoulos.com) [@ndiakopoulos](http://www.twitter.com/ndiakopoulos) is the author of AnecbotalNYT, but the bot itself tweets autonomously once run. There is no editional human filtering or oversight of the bot. 
+
+####Data Inputs
+**Provenance** 
+- Data is drawn directly from the [NYT Community API](http://developer.nytimes.com/docs/community_api/The_Community_API_v3/). The bot is accurate and reliable as the data delivered from that API. 
+**Sampling & Filtering**  
+- The bot only considers top level comments (and filters out comments that are responses to other comments) as they're more likely to be responding directly to the ideas in the article. 
+- The bot listens to the free Twitter stream for people tweeting a link containing "nytimes.com". It considers the first link it finds in the tweet only. Filtered out are tweets that are retweets, tweets not in english, and tweets that refer to the bot's account. The article link must have comments, and it must have 100 or more comments in order to be considered. Every 10th article link that meets these criteria will have a comment selected for the bot to tweet out. The comments are selected by ranking and scoring them according to the scores described below. The final comment tweeted out is a random selection from the top 3 according to the ranking. 
+**Personal Information**
+- The bot does not share any personal information that is not available from the NYT Community API. The comments that the bot shares are attributed to the name and the location of the user who shared the comment. 
+**Variable Definitions**  
+The bot relies on the composition of three scores in order to rank and select the comments that it tweets. 
+- Length. The Length score is computed as the number of words in a comment.
+- Readability. The Readability score is calculated as the [SMOG](http://www.readabilityformulas.com/smog-readability-formula.php) index or reading grade level of the text.
+- Personal Experience. Measures the rate of use of words in Linguistic Inquiry and Word Count ([LIWC](http://liwc.wpengine.com/)) categories “I”, “We”, “Family”, and “Friends”. This score was validated in previously [published research](http://www.nickdiakopoulos.com/wp-content/uploads/2011/07/ISOJ_Journal_V5_N1_2015_Spring_Diakopoulos_Picking-NYT-Picks.pdf). 
 
 
 ### Setup
