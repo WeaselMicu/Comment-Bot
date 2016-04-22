@@ -1,0 +1,26 @@
+-----
+-----
+-----
+-----
+-----
+16:08:42
+comment API: 1
+Invalid argument, 'thread': Unable to find thread 'link:http://www.npr.org/2016/04/22/475297932/virginias-governor-just-gave-206-000-ex-felons-the-right-to-vote'
+Number of comments:  161
+ntweets: 1
+-----
+-----
+-----
+-----
+16:09:47
+comment API: 2
+Invalid argument, 'thread': Unable to find thread 'link:http://www.npr.org/2016/04/21/474677880/first-listen-lera-lynn-resistor'
+Number of comments:  128
+ntweets: 2
+-----
+-----
+-----
+-----
+-----
+-----
+-----

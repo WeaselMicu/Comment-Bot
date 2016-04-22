@@ -1,0 +1,31 @@
+#-*- coding: utf-8 -*-
+
+
+Things that confuse me
+
+
+Why is it Python2.7? Is there a Py2-only module? Don't know.
+
+Do I need to create a whole new twitter account called "comment bot"? Or is it
+created within the bot code? -- yes, create testing twitter account, make it private
+
+Which API(s) do I need to sign up for in NYT Apps?
+"Select which Web APIs this application will use"
+Ahh Community API key. Make this clearer.
+
+
+Do the twitter keys etc need to wrapped in quotes, too? - no
+
+Have to install lxml using conda install not pip install -- found not the case when installed using requirements.txt
+
+Instructions for how to start the app, but how do I know its running? -- look at nohup.txt
+
+Credit Sim as a cowriter in the README.md
+
+Consider every nth tweet?
+pagesize?
+line 250 CommentBot.py -> personalize tweet message?
+line 266 finish #description
+
+THINGS TO DO:
+CommentBot.py specifically calls 'AnecbotalNYT'. -> need to make it general, and
