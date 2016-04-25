@@ -42,13 +42,15 @@ Font = config.get("TextConfig", "font")
 font_size = config.get("TextConfig", "font_size")
 font_color = config.get("TextConfig", "font_color")
 background_color = config.get("BackgroundConfig", "background_color")
+watermark_logo  = config.get("BackgroundConfig", "watermark_logo")
 
 # enter items specific to where your comments will come from
 #comment_keys = config.get("CommentConfig", "comment_keys")
-#filter_object_ = config.get("CommentConfig", "filter_object")
+filter_object_ = config.get("CommentConfig", "filter_object")
 bot_name =  config.get("CommentConfig", "bot_name")
 forum = config.get("CommentConfig", "disqus_forum")
 reputation = config.get("CommentConfig", "reputation")
+min_comments_found = config.get("CommentConfig", "min_comments_found")
 
 # Authenticate so that the bot can act
 auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -106,7 +108,7 @@ class CommentBot(tweepy.StreamListener):
 
 		# Defines the filter for Twitter Streams to capture data, can provide a hashtag, word, or screenname
 		# Currently set to track all tweets mentioning nytimes.com, see https://dev.twitter.com/streaming/overview/request-parameters
-		self.filter_object = ['npr org']
+		self.filter_object = [filter_object_]
 
 	# If a Tweet matches the listener criteria, the on_data function is invoked
 	def on_data(self, data):
@@ -160,6 +162,8 @@ class CommentBot(tweepy.StreamListener):
 		self.comment_api_count = self.comment_api_count + 1
 		#nytk = disqus_API_key[self. % len(disqus_API_key)]
 		#http://stackoverflow.com/questions/4755278/is-it-possible-to-use-the-disqus-api-to-get-comments-from-a-specific-url
+		# possible arguments for `params`: https://disqus.com/api/console/#!/?account=4239534&access=secret&method=GET&endpoint=posts%2Flist&format=json&forum=npr-news&thread%3Alink=http%3A%2F%2Fwww.npr.org%2F2016%2F04%2F19%2F474689286%2Fout-of-the-horror-in-oklahoma-city-merrick-garland-forged-the-way-forward&op=docs&csrfmiddlewaretoken=uBBxB27jkUL9LkDH2o91HrqsRjUtD18z
+		# and click `Get documentation`
 		r = requests.get("http://disqus.com/api/3.0/threads/listPosts.json", params={"thread": 'link:'+url, "api_key": disqus_API_key, "forum": forum, "limit":100})
 		print time.strftime("%H:%M:%S")
 		print "comment API: " + str(self.comment_api_count)
@@ -177,9 +181,8 @@ class CommentBot(tweepy.StreamListener):
 		num_comments_found = len(comments_data)
 		print "Number of comments:  " + str(num_comments_found)
 
-		# Check if there are more than 100 comments since we only want to consider articles that have a robust conversation on them
 		# Note: this is the total count, but in the API below we just consider  top-level "parent" comments
-		if num_comments_found < 50: #This was 100! -> Parameterise this for testing purposes?
+		if num_comments_found < int(min_comments_found): #This was 100! -> Parameterise this for testing purposes?
 			return
 
 		# To slow the bot down we only consider every Nth (in this case 10th) tweet
@@ -194,9 +197,9 @@ class CommentBot(tweepy.StreamListener):
 			self.api_limit_checker()
 			self.comment_api_count = self.comment_api_count + 1
 			for comment in comments_data:
-				if comment['parent'] == None:
-					print(comment['repuation'])
-					if comment['reputation'] > int(reputation):   # Trying to only get top-level comments
+				if comment['parent'] == None:  # top level parent comments
+					print(comment['author']['reputation'])
+					if comment['author']['reputation'] > int(reputation):   # Trying to only get worthy comments?
 						raw_message = comment['raw_message']
 				# Do a hard filter to remove anything that's less than 25 words
 						if calcLength(raw_message) > 25:
@@ -288,7 +291,7 @@ class CommentBot(tweepy.StreamListener):
 		# Generate image with comment
 		text = '"'+comment["raw_message"]+'"'
 		#text = text.replace('<br/>',' ')
-		soup = BeautifulSoup(text)
+		soup = BeautifulSoup(text, 'lxml') # BeautifulSoup still prints that warning...ugh
 		text = soup.get_text()
 		# remove any extra spaces
 		text = re.sub("\s+"," ", text)
