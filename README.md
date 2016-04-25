@@ -168,3 +168,6 @@ top comment score: 0.5
 ```
 
 - If no comments survive `parent`, `reputation` and being at least 25 characters long, the `num comments` line will read `num comments: 0` and after that line you'll get an `Exception  list index out of range` because you're passing a list of 0 comments to the text processing code. It's ok, though, because the bot will continue to search for comments...
+
+## Feedback
+As always, please do contact me at starkja@umd.edu with any comments, suggestions or questions! You can also find me on Twitter [@_JAStark](https://twitter.com/_jastark)
