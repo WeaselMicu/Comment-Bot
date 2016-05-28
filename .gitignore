@@ -1,0 +1,12 @@
+# files to ignore when commit to GitHub :D  Like....secrets!
+
+# File containing all our API keys and such
+keys.txt
+
+
+# any compiled code created when python runs
+*.pyc
+
+
+# my configured bot.conf
+bot.conf
