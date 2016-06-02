@@ -60,7 +60,6 @@ auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
 
-
 # Function written by Ryan Pitts
 def clean_thread_url(url, forum):
 	'''
@@ -152,9 +151,11 @@ class CommentBot(tweepy.StreamListener):
 		# Get the URL shared in the tweet
 		url = tweet_data["entities"]["urls"][0]["expanded_url"]
 		url = clean_thread_url(url, forum)
+		print(url)
 
 		# Determine if the url is your News Org url by seeing if it includes a specific string e.g. "nytimes" or "nyti.mes", or "npr.org2016" or "n.pr/".
 		if not (news_org_url_1 in url or news_org_url_2 in url):
+			print("Not url 1 or 2")
 			return
 
 		self.comments_api_count = self.comments_api_count + 1
@@ -162,25 +163,29 @@ class CommentBot(tweepy.StreamListener):
 		comments_api_key = comments_keys[self.comments_api_count % len(comments_keys)]
 		if API == "NYT":
 			r = requests.get("http://api.nytimes.com/svc/community/v3/user-content/url.json", params={"url": url, "api-key": comments_api_key})
-		elif API == "Disqus":
-			r = requests.get("http://disqus.com/api/3.0/threads/listPosts.json", params={"thread": 'link:'+url, "api_key": disqus_API_key, "forum": forum, "limit":100})
-		elif:
+			print("API = NYT, done requests.get")
+		if API == "Disqus":
+			r = requests.get("http://disqus.com/api/3.0/threads/listPosts.json", params={"thread": 'link:'+url, "api_key": comments_api_key, "forum": forum, "limit":100})
+			print("API = Disqus, done requests.get")
+		if API != "NYT" and API != "Disqus":
 			print("No API selected")
 		print time.strftime("%H:%M:%S")
 		print "comment API: " + str(self.comments_api_count)
 		try:
-			#print "http://api.nytimes.com/svc/community/v3/user-content/url.json?url="+url+"&api-key="+comments_api_key
 			comments_data = r.json()
+			print(comments_data)
 		except:
 			response = r.text
+			print("Article might use different Disqus forum")
 			if response.find("Developer Over Rate"):
 				print "Comments API Rate Limit"
 				self.api_limit_checker()
-			return  # -> This is indented one more in current Disqus version.
+			return  # -> This is indented  more than in current Disqus version.
 
 		if API == 'NYT':
 			num_comments_found = comments_data["results"]["totalParentCommentsFound"]
-		elif API == "Disqus":
+		if API == "Disqus":
+			comments_data = comments_data["response"]
 			num_comments_found = len(comments_data)
 		print("Number of comments found: " + str(num_comments_found))
 
@@ -197,7 +202,8 @@ class CommentBot(tweepy.StreamListener):
 
 		else:
 			# Get all the comments on the article
-			# Note: Looping through offset only gets you the top level "parent" comments and not the child responses
+			# Note: Looping through offset only gets you the top level "parent" comments and not the child responses (NYT)
+			# 'offset' not required for Disqus comments - parent level comments are specified using 'Parent' tag.
 			tagged_comments = []
 			if API == 'NYT':
 				pagesize = 25
@@ -218,11 +224,12 @@ class CommentBot(tweepy.StreamListener):
 						offset = offset + pagesize
 					except:
 						pass
-			elif API == 'Disqus':
+			if API == 'Disqus':
 				self.api_limit_checker()
-				self.comment_api_count = self.comment_api_count + 1
+				self.comments_api_count = self.comments_api_count + 1
 				for comment in comments_data:
-					if comment['parent'] == None:  # top level parent comments
+					if comment['parent'] == None:
+						#print("Yeay, a parent!")  # top level parent comments
 						print(comment['author']['reputation'])
 						if comment['author']['reputation'] > int(reputation):   # Trying to only get worthy comments?
 							raw_message = comment['raw_message']
@@ -237,13 +244,17 @@ class CommentBot(tweepy.StreamListener):
 			max_readability = 0
 			min_length = 10000
 			max_length = 0
+
 			print "num comments: " + str(len(tagged_comments))
+			if (len(tagged_comments)) < 3:
+				return
+
 			for i, comment in enumerate(tagged_comments):
 				if API == 'NYT':
 					comment["PersonalXP"] = calcPersonalXPScore(comment["commentBody"])
 					comment["Readability"] = calcReadability(comment["commentBody"])
 					comment["Length"] = calcLength(comment["commentBody"])
-				elif API == 'Disqus':
+				if API == 'Disqus':
 					comment["PersonalXP"] = calcPersonalXPScore(comment["raw_message"])
 					comment["Readability"] = calcReadability(comment["raw_message"])
 					comment["Length"] = calcLength(comment["raw_message"])
@@ -316,29 +327,30 @@ class CommentBot(tweepy.StreamListener):
 				print "No more NYT API calls today. Going to sleep for 24 hours, see you tomorrow"
 				self.comments_api_count = 0
 				time.sleep (86400)
-		elif API == 'Disqus':
-			if self.comment_api_count > 1000 * len(disqus_API_key):
-			# once we exhaust Disqus API calls we go to sleep for 24 hours
-			print "No more Disqus API calls today. Going to sleep for 24 hours, see you tomorrow"
-			self.comment_api_count = 0
-			time.sleep (86400)
+		if API == 'Disqus':
+			if self.comments_api_count > 1000 * len(comments_keys):
+				# once we exhaust Disqus API calls we go to sleep for 24 hours
+				print "No more Disqus API calls today. Going to sleep for 24 hours, see you tomorrow"
+				self.comments_api_count = 0
+				time.sleep (86400)
 
 	#This function takes the Tweet JSON as an input
 	#This module takes the Tweet JSON and then calls extract which will help in extracting the key requirements from it
-	def tweet_reply(comment, tweet):
+	def tweet_reply(self, comment, tweet):
+		print("Starting tweet_reply")
 		# Generate image with comment
 		if API == 'NYT':
 			text = '"'+comment["commentBody"]+'"'
 			#text = text.replace('<br/>',' ')
-		elif API == 'Disqus':
+		if API == 'Disqus':
 			text = '"'+comment["raw_message"]+'"'
-		soup = BeautifulSoup(text, 'lxml') # BeautifulSoup still prints that warning...ugh
+		soup = BeautifulSoup(text, "html.parser") # BeautifulSoup still prints that warning...ugh
 		text = soup.get_text()
 		# remove any extra spaces
 		text = re.sub("\s+"," ", text)
 		if API == 'NYT':
 			self.create_image(text, comment["userDisplayName"], comment["userLocation"])
-		elif API == 'Disqus':
+		if API == 'Disqus':
 			self.create_image(text, comment["author"]["name"], comment["author"]["location"])
 
 		# Grab user info and generate text for status
@@ -348,7 +360,7 @@ class CommentBot(tweepy.StreamListener):
 		# at+" "+
 		# In case you're interested, here's a personal
 		# see here for info on RT quoting a tweet: https://twittercommunity.com/t/method-to-retweet-with-comment/35330/17
-		status = "h/t to " + at + " for sharing this article. In case you're interested, here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
+		status = "h/t to " + at + " for sharing this article. Here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
 
 		image = "tweet_reply.png"
 
@@ -357,7 +369,7 @@ class CommentBot(tweepy.StreamListener):
 	#===============Image Module=======================
 	#Since Twitter allows only 140 character limit, we use an image in the reply
 	#This module allows wrapping the text so that is can be converted to an image properly
-	def wrap_text(wrap,font,draw):
+	def wrap_text(self, wrap,font,draw):
 		margin = offset = 20
 		margin = 20
 		for line in wrap:
@@ -365,7 +377,7 @@ class CommentBot(tweepy.StreamListener):
 			offset += font.getsize(line)[1]
 
 	#This module takes in the message and converts it to an image. It has internal helper module which help in
-	def create_image(message, user, location):
+	def create_image(self, message, user, location):
 		wrap = textwrap.wrap(message,width=50)
 		print(wrap)
 		font = ImageFont.truetype(os.path.join(font_path, Font), int(font_size))
@@ -389,7 +401,7 @@ class CommentBot(tweepy.StreamListener):
 
 
 	def on_error(self, status):
-		print status
+		print ("Tweeting error?", status)
 
 
 # Function to start the bot listening to the Twitter stream
@@ -401,7 +413,7 @@ def run():
 	try:
 		stream.filter(track=tb.filter_object, async=True)
 	except (Timeout, ssl.SSLError, ReadTimeoutError, ConnectionError, ProtocolError, IncompleteRead, AttributeError) as exc:
-		print exc
+		print ("This is a run error from line 415 ", exc)
 		pass
 	except:
 		pass

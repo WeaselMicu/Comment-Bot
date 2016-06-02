@@ -1,4 +1,4 @@
-# files to ignore when commit to GitHub :D  Like....secrets!
+# files to ignore when commit to GitHub :D  Like....secrets, tokens and compiled python (.pyc) code!
 
 # File containing all our API keys and such
 keys.txt
@@ -9,4 +9,13 @@ keys.txt
 
 
 # my configured bot.conf
-bot.conf
+#bot.conf
+
+
+# nohup files from testing
+nohup.txt
+nohup_Disqus.txt
+nohup_NYT.txt
+
+# images files from testing
+test_tweet_reply.png

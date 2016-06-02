@@ -1,6 +1,5 @@
 beautifulsoup4==4.4.1
 bs4==0.0.1
-#disqus-python==0.4.2
 lxml==3.6.0
 nltk==3.2.1
 oauthlib==1.0.3

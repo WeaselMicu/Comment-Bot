@@ -1,23 +1,23 @@
 # Anecbotal Comment Bot
-This repository contains the code to run a News Bot on Twitter that shares anecdotes.  It's being open sourced as a reference implementation for other news bots that listen and respond on Twitter. Currently, we have versions that use different commenting systems that live on different branches:
-- [AnecbotalNYT](https://twitter.com/anecbotalnyt) configured example that lives on [Anecbotal_NYT](https) branch using the NYT bespoke comments systems
-- [__TestB0t__](https://twitter.com/__TestB0t__) configured example that lives on [Anecbotal_Disqus](https) branch using the Disqus commenting system, tweeting from NPR's `npr-news` Disqus forum. [__TestB0t__](https://twitter.com/__TestB0t__) is not running currently, but exists with an example of a `.png` output.
+This repository contains the code to run a News Bot on Twitter that shares anecdotes from news article comment sections.  It's being open sourced as a reference implementation for other news bots that listen and respond on Twitter. Currently, the bot can access NYT comments (Waiting to be updated: NYT comments system just changed!!), and Disqus comments. We hope to expand this is the future to include configurations for other comment systems such as LiveFyre and Facebook. The `bot.conf` file will be configured differently depending on which comments system you want to access.
 
-We hope to expand this is the future to include configurations for other comment systems such as LiveFyre and Facebook.
+- [AnecbotalNYT](https://twitter.com/anecbotalnyt) twitter bot is currently running, configured to access the NYT bespoke comments systems
+- [TestB0t](https://twitter.com/__TestB0t__) is configured to use the Disqus commenting system, with some tweets from NPR's `npr-news` Disqus forum. [TestB0t](https://twitter.com/__TestB0t__) is not running currently.
 
 For more information on News Bots see the following article:
 - T. Lokot and N. Diakopoulos. News Bots: Automating News and Information Dissemination on Twitter. Digital Journalism. 2016. [PDF](http://www.nickdiakopoulos.com/wp-content/uploads/2011/07/newsbots_final.pdf)
 
 This project makes extensive use of the code from the [CommentIQ repository](https://github.com/comp-journalism/commentIQ), but has been repurposed.
 
-### Editorial Transparency
+
+## Editorial Transparency
 In addition to full source code transparency for the bot, a more accessible version that describes the key aspects of the bot is provided here.
 
 The goal of Anecbotal is to find interesting anecdotes from comments made on a news article and make them more visible to people tweeting about those stories on Twitter. The hope is that some of the more thoughtful personal stories and opinions that people make in the comments can be interesting and engaging content on Twitter as well.
 
 [Nick Diakopoulos](http://www.nickdiakopoulos.com) [@ndiakopoulos](http://www.twitter.com/ndiakopoulos) from the Computational Journalism Lab at the University of Maryland is the author of AnecbotalNYT, and [@_JAStark](https://twitter.com/_jastark) who is a postdoc in the lab wrote the Disqus implementation. The bot itself tweets autonomously once run. There is no additional human filtering or oversight of the bot.
 
-The Disqus part of this bot was written at OpenNews (Mozilla Foundation) Code Convening Austin 2016 as part of Bot Week (insert links to bot week source)
+The Disqus part of this bot was written at OpenNews (Mozilla Foundation) Code Convening Austin 2016 as part of [Bot Week](https://source.opennews.org/en-US/articles/when-bots-get-together-part-2/).
 
 **Input Data**  
 
@@ -57,7 +57,7 @@ If you'd like to run this bot (or repurpose it) first clone the repository to yo
 
 **Keys**  
 
-Rename `example-bot.conf` to `bot.conf` and add your Twitter API keys, NYT Community API keys, or Disqus keys (more instructions follow).
+In `bot.conf`, add your Twitter API keys, NYT Community API keys, or Disqus keys (more instructions below under "Configuring the Bot using `bot.conf`").
 
 To sign up for a Twitter API key and App follow the instructions here: http://www.compjour.org/tutorials/getting-started-with-tweepy/ to create a Twitter app. You need to do this in order to get the necessary authentication tokens to log in to Twitter programmatically. Put these tokens in the `bot.conf` file.
 
@@ -65,12 +65,8 @@ To sign up for NYT Community API Keys see the documentation: http://developer.ny
 
 To sign up for Disqus API keys, sign in to Disqus (if you're using this bot for Disqus comments, I am assuming your organization already has an account), and then register a new App.
 
-**A Note About Disqus**
-The Disqus commenting community relies on forums with unique names. Some news organizations like NPR use several section-specific forums (eg `npred` for their education section, and `npr-news` for their general news section). Therefore, be sure to use the correct forum for your Bot. This code does not currently support more than one forum at a time, so you can only have your Bot tweet from one specified forum.
-
-
 **Software Dependencies**  
-Before you can run the bot you must install the following dependencies (setting up a virtual environment is recommended, tutorial [here](http://www.simononsoftware.com/virtualenv-tutorial/)) using `pip install -r requirements.txt`:
+After you've cloned or downloaded this repo, but before you run the bot, you must install the following dependencies (setting up a virtual environment is recommended, tutorial [here](http://www.simononsoftware.com/virtualenv-tutorial/)) using `pip install -r requirements.txt`:
 - Python v 2.7
 - Tweepy v 3.5.0
 - Beautiful Soup v 4.3.2
@@ -83,18 +79,92 @@ Before you can run the bot you must install the following dependencies (setting 
 - Then activate the new environment by typing `source activate commentbot`
 - Open `requirements.txt` in a text editor and comment out `python==2.7` line and save.
 - On the command line, type `pip install -r requirements.txt`, and you should see everything successfully installing.
-- To check you have the requirements installed, you can type `pip freeze` which will print the installed modules to your screen.
+- To check you have the requirements installed, you can type `pip freeze` which will print the installed modules to your terminal screen.
 
 
-### Testing
+## Running
 
-**Twitter Bot**
+To set the bot up to run indefinitely but to continually output status information to file run a command like:
+- `nohup python -u run.py > nohup.txt &`
+- Don't forget to complete the `bot.config` file with the relevant fields.
+
+And to quit it type:
+- type on the command line: `ps aux | grep python`
+- read the left-most digit
+- type `kill -9 xxxx` replacing the `xxxx` with those digits
+
+
+## Testing and Configuring
+## Configuring the Bot using `bot.conf`
+
+* For examples of `bot.config`s, see files [example-bot-Disqus.conf](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-Disqus.conf) and [example-bot-NYT](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-NYT)
+
+**TwitterConfig**
+`[TwitterConfig]
+consumer_key =
+consumer_secret =
+access_token =
+access_token_secret =
+bot_name = ''
+`
+This wants all your keys and secrets from your Bot twitter App created from your bot twitter account that you are tweeting from. Instructions for how to set up an account are described above under "Setup". No quotes are required around the keys, secrets or tokens. `bot_name` does however required quotes.
+
+**CommentConfig**
+`[CommentConfig]
+API =
+comments_keys = []
+filter_object =
+min_comments_found =
+news_org_url_1 =
+news_org_url_2 =
+`
+This section wants all the details related to the comments system API you want to access.
+- `API` : Currently, the only systems this can use are `API = NTY` and `API = Disqus`. In the future we hope to add LiveFyre and Facebook. No quotes are required.
+- `comments_keys` : This is a list of keys from your comments API account. Keys _do_ need to be in quotes, and separated by commas if you have more than one key.
+- `filter_object` : This is text that the twitter listener is 'listening' for in the twittersphere. Pick a word likely to show up in tweets that include a url to an article. The `example-bot-Disqus.conf` uses `npr` while the `example-bot-NYT.conf` uses `nytimes com`. The NYT filter is better because `npr` can be part of a word unrelated to npr.org. You could filter on a `#hashtag#` if you want to only tweet on a particular twitter topic. If the filter is a `.com`, replace the `.` with a space.
+- `min_comments_found` : can be between 0 and 100 comments. If the value you choose is too small, the bot may fail during the `TextStatistics` phase, as not enough comments may pass the thresholds. This may be more important with Disqus forums, as there is the additional filter of `reputation`.
+- `news_org_url_1`, `news_org_url_2` : These are the actual links to articles that the bot is retrieving comments from. You may need to do a little research to figure out how they get linked in twitter, as sometimes URL shortening occurs. If there is only one kind of link, then put the same one in both these spots. No quotes required.
+
+**CommentConfig -> Disqus only**
+`reputation =
+disqus_forum =
+`
+This section of `CommentConfig` is only for Disqus comment systems.
+- `reputation` : requires an integer. Any comment from an author with a reputation below this value will not be considered in the text analysis. Author reputations seem to be floats and can also be negative. I went with a reputation of `2` when testing. You may want to be more or less generous.
+- `disqus_forum` : This is the specific forum you want to consider comments from.
+
+**TextConfig**
+`[TextConfig]
+font_path =
+font =
+font_size =
+font_color = #
+`
+This wants information regarding your text formatting.
+- `font_path` : the path for your desired font (eg your news orgs signature font). No quotes required.
+- `font` : This can be a `.ttf` or truetype font. I find a sans serif renders best, but if your news org's signature font is _not_ sans serif, try it anyway, and see. No quotes.
+- `font_size` : This should be very large. I used `30` in testing. The image is created a twice the size, and then down-sampled using antialiasing to a tweetable size. This was done to improve the rendering of the text.
+- `font_color` : Can be a hexadecimal starting with a `#`. I have not tested with other color code types (e.g. RGB), but feel free to test using the `test_imageModule.py`.
+
+**BackgroundConfig**
+`[BackgroundConfig]
+background_color = #
+watermark_logo =
+`
+This wants information regarding your chosen background color and if you have a news org logo.
+- `background_color` : Color rules are the same as for text, using hexadecimal.
+- `watermark_logo` : The logo should be the path and filename, and in `.png` format. The logo size has been tested at 100x100 pixels and is coded to be placed in the top right of the image. If you want to change the size and/or the position of the logo in the image, please experiment using `test_imageModule.py`.  
+
+### Tips and Tricks
+
 - Keep Bot Private and put in the "Bio" to not follow, just so people know exactly who and what you are.
-- Reduce [CommentConfig] `min_comments_found = 50` comment limit to a lower number (like 10 or 50) so when testing it will tweet something sooner.
+- Reduce number of Twitter API calls from  `10` down to `1` in `CommentBot.py` line `202` (`if self.num_tweets < 10:`) so that when testing it will tweet something sooner. Don't forget to change it back when done!
 - Stop App to iterate code, start App to test, watch `nohup.txt` populate to check for errors and know when it's tweeted. Check the tweet, stop App, re-code... etc etc and delete tweet so as not to annoy anyone ;)
-- Once happy, reconfig [CommentConfig] to 100 (or whatever you like), undo twitterbot privacy and edit Bio.
+- Once happy, change `if self.num_tweets < 1:` back to `10`, undo twitter-bot privacy and edit Bio.
 
 **Tips and Tricks working with Disqus forum queries**
+The Disqus commenting community relies on forums with unique names. Some news organizations like NPR use several section-specific forums (eg `npred` for their education section, and `npr-news` for their general news section). Therefore, be sure to use the correct forum for your Bot. This code does not currently support more than one forum at a time, so you can only have your Bot tweet from one specified forum.
+
 To check you have the correct forum name, use the Disqus console https://disqus.com/api/console/#!/ which you can access after registering your App with Disqus. Here, fill in:
 - `Application` field with your App name (secret or public doesn't _seem_ to matter)
 - `Headers and Methods` with `GET` and from the dropdown menu, under `Posts` select `list`. In the next field, select `json`
@@ -104,65 +174,15 @@ To check you have the correct forum name, use the Disqus console https://disqus.
 
 You'll know it worked when you get a nice JSON response. Now you can enter that forum name into the [CommentConfig] `disqus_forum` section. If it doesn't work, you likely have something wrong with the **forum** selected _or_ with the url link being queried.
 
-***Explain clean_thread_url...***
+More Disqus-specific testing tips in [Disqus_testing_README.md](https://github.com/comp-journalism/Comment-Bot/blob/master/Disqus_testing_README.md)
 
-More tips for Disqus found in the Disqus Branch.
+**Testing Image Output**
+Before you test the Bot itself, you might like to get your comment image fixed up just how you like it. To do that you need `bot.conf` and `test_imageModule.py`. Once you have edited the `bot.conf` information with items relevant to testing the image module (including `[TextConfig]` and `[BackgroundConfig]`), you can run the test from the command line using: `python test_imageModle.py`. The image will be output into the same directory as a `.png`.
 
-
-### Configuring the Bot using bot.conf
-
-
-`[TwitterConfig]
-# insert your various keys below. No quotes around keys required
-consumer_key =
-consumer_secret =
-access_token =
-access_token_secret =
-bot_name = ''
+I recommend only editing the `bot.conf`. However, if you do make any edits to the `image_module` when testing your image output, make sure to reflect those changes in the `image_module` section in the `CommentBot.py` code.
 
 
-
-[CommentConfig]
-# info from disqus or NYT comments api.
-# API should be NYT or Disqus. No quotes.
-API =
-# comments keys should be a comma delimited list. Wrap the keys with quotes
-comments_keys = []
-filter_object =
-#min_comments_found can be between 0 and 100 (pages of 25 comments each). NYT will count comments, while Disqus seems to count pages (each of which contain 25 comments).
-min_comments_found =
-news_org_url_1 = nytimes
-news_org_url_2 = nyti.mes
-# requests_get_URL will be the api requests URL eg "http://api.nytimes.com/svc/community/v3/user-content/url.json", or "http://disqus.com/api/3.0/threads/listPosts.json"
-#requests_get_URL =
-
-# DISQUS ONLY
-# reputation is an integer
-reputation =
-disqus_forum =
-
-
-
-[TextConfig]
-# enter your desired font information (eg your news orgs signature font). No quotes required.
-font_path =
-# I find sans serif is best
-font = xxx.ttf
-# enter font size. 30 is recommended. Choose a size double what you want, cos later the image with the text gets resampled to a smaller size with antialiasing.
-font_size = 30
-font_color = ###
-
-
-``
-`[BackgroundConfig]
-# enter your desired background information eg. company's signature colors or logo
-background_color = ###
-# logo size should be 100x100 pixels. If you want to change the size, please experiment using `test_imageModle.py`
-`watermark_logo = ./xxx.png```
-
-
-
-#### Things to mess with directly in the code:
+### Things to mess with directly in the code:
 
 **Disqus Forum-Specific URL**
 In `CommentBot.py` starting at line 65:
@@ -176,19 +196,12 @@ In `CommentBot.py`:
 `def tweet_reply(comment, tweet):`
 
 Currently the line reads:
-`status = "h/t to " + at + " for sharing this article. In case you're interested, here's an anecdote from the article's comments:"`
-You may what some other message here, so feel free to reorganize this line as you wish. For example, you may not want to hat-tip (`h/t`).
+`status = "h/t to " + at + " for sharing this article. Here's an anecdote from the article's comments:"`
+You may what some other message here, so feel free to reorganize this line as you wish. For example, you may not want to hat-tip (`h/t`). Just be wary, though, that the message may be too long once it has added in the username of the tweeter. A message will appear in the `nohup.txt` file if it is too long, with a reference to `status` and twitter API response code `186`.
 
-
-
-**Running**  
-
-To set the bot up to run indefinitely but to continually output status information to file run a command like:
-- `nohup python -u run.py > nohup.txt &`
-- Don't forget to rename `example-bot.config` to just `bot.config` and to complete the relevant fields in the file.
 
 #Funding
 This project was funded by a grant from the Tow Center for Digital Journalism to study computational and data journalism in the context of algorithmic accountability reporting.
 
 #Feedback
-Email Jennifer A Stark at starkja@umd.edu with any comments, suggestions or questions. You can also find me on Twitter [@_JAStark](https://twitter.com/_jastark)
+Email Jennifer A Stark at starkja@umd.edu with any comments, suggestions or questions. You can also find me on Twitter [@_JAStark](https://twitter.com/_jastark). Alternatively, you can submit an issue.

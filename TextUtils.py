@@ -72,7 +72,7 @@ def CleanAndTokenize(text):
     r = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
     text = re.sub(r, " URLURLURL", text)
     # Strip html tags
-    soup = BeautifulSoup(text)
+    soup = BeautifulSoup(text, "html.parser")
     for tag in soup.findAll(True):
         tag.replaceWithChildren()
         text = soup.get_text()
@@ -122,7 +122,7 @@ def escape_string(string):
     res = res.replace('\047','\134\047') # single quotes
     res = res.replace('\042','\134\042') # double quotes
     res = res.replace('\032','\134\032') # for Win32
-   
+
     return res
 
 def error_name():
@@ -183,6 +183,3 @@ def calcReadability(comment_text):
 def calcLength(comment_text):
     token = CleanAndTokenize(comment_text)
     return len(token)
-
-
-
