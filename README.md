@@ -99,24 +99,13 @@ And to quit it type:
 * For examples of `bot.config`s, see files [example-bot-Disqus.conf](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-Disqus.conf) and [example-bot-NYT.conf](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-NYT.conf)
 
 **TwitterConfig**
-`[TwitterConfig]
-consumer_key =
-consumer_secret =
-access_token =
-access_token_secret =
-bot_name = ''
-`
-This wants all your keys and secrets from your Bot twitter App created from your bot twitter account that you are tweeting from. Instructions for how to set up an account are described above under "Setup". No quotes are required around the keys, secrets or tokens. `bot_name` does however required quotes.
+`[TwitterConfig]`, `consumer_key = `, `consumer_secret = `, `access_token = `, `access_token_secret = `, `bot_name = ''`
+
+This wants all your keys and secrets from your Bot twitter App created from your bot twitter account that you are tweeting from. Instructions for how to set up an account are described above under "Setup". No quotes are required around the keys, secrets or tokens. `bot_name` does however require quotes.
 
 **CommentConfig**
-`[CommentConfig]
-API =
-comments_keys = []
-filter_object =
-min_comments_found =
-news_org_url_1 =
-news_org_url_2 =
-`
+`[CommentConfig]`, `API =`, `comments_keys = []`, `filter_object =`, `min_comments_found =`, `news_org_url_1 =`, `news_org_url_2 =`
+
 This section wants all the details related to the comments system API you want to access.
 - `API` : Currently, the only systems this can use are `API = NTY` and `API = Disqus`. In the future we hope to add LiveFyre and Facebook. No quotes are required.
 - `comments_keys` : This is a list of keys from your comments API account. Keys _do_ need to be in quotes, and separated by commas if you have more than one key.
@@ -125,20 +114,15 @@ This section wants all the details related to the comments system API you want t
 - `news_org_url_1`, `news_org_url_2` : These are the actual links to articles that the bot is retrieving comments from. You may need to do a little research to figure out how they get linked in twitter, as sometimes URL shortening occurs. If there is only one kind of link, then put the same one in both these spots. No quotes required.
 
 **CommentConfig -> Disqus only**
-`reputation =
-disqus_forum =
-`
+`reputation = `, `disqus_forum = `
+
 This section of `CommentConfig` is only for Disqus comment systems.
 - `reputation` : requires an integer. Any comment from an author with a reputation below this value will not be considered in the text analysis. Author reputations seem to be floats and can also be negative. I went with a reputation of `2` when testing. You may want to be more or less generous.
 - `disqus_forum` : This is the specific forum you want to consider comments from.
 
 **TextConfig**
-`[TextConfig]
-font_path =
-font =
-font_size =
-font_color = #
-`
+`[TextConfig]`, `font_path = `, `font = `, `font_size = `, `font_color = # `
+
 This wants information regarding your text formatting.
 - `font_path` : the path for your desired font (eg your news orgs signature font). No quotes required.
 - `font` : This can be a `.ttf` or truetype font. I find a sans serif renders best, but if your news org's signature font is _not_ sans serif, try it anyway, and see. No quotes.
@@ -146,10 +130,8 @@ This wants information regarding your text formatting.
 - `font_color` : Can be a hexadecimal starting with a `#`. I have not tested with other color code types (e.g. RGB), but feel free to test using the `test_imageModule.py`.
 
 **BackgroundConfig**
-`[BackgroundConfig]
-background_color = #
-watermark_logo =
-`
+`[BackgroundConfig]`, `background_color = # `,`watermark_logo = `
+
 This wants information regarding your chosen background color and if you have a news org logo.
 - `background_color` : Color rules are the same as for text, using hexadecimal.
 - `watermark_logo` : The logo should be the path and filename, and in `.png` format. The logo size has been tested at 100x100 pixels and is coded to be placed in the top right of the image. If you want to change the size and/or the position of the logo in the image, please experiment using `test_imageModule.py`.  
