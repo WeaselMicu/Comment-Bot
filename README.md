@@ -94,10 +94,9 @@ And to quit it type:
 - type `kill -9 xxxx` replacing the `xxxx` with those digits
 
 
-## Testing and Configuring
-## Configuring the Bot using `bot.conf`
+### Configuring the Bot using `bot.conf`
 
-* For examples of `bot.config`s, see files [example-bot-Disqus.conf](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-Disqus.conf) and [example-bot-NYT](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-NYT)
+* For examples of `bot.config`s, see files [example-bot-Disqus.conf](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-Disqus.conf) and [example-bot-NYT.conf](https://github.com/comp-journalism/Comment-Bot/blob/master/example-bot-NYT.conf)
 
 **TwitterConfig**
 `[TwitterConfig]
