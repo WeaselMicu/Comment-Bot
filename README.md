@@ -115,7 +115,7 @@ This section of `CommentConfig` is only for Disqus comment systems.
 `[TextConfig]`, `font_path = `, `font = `, `font_size = `, `font_color = # `
 
 This section defines information regarding your text formatting.
-- `font_path` : the path for your desired font (e.g., your news orgs signature font). No quotes required.
+- `font_path` : the full path for your desired font (e.g., your news orgs signature font). No quotes required.
 - `font` : This can be a `.ttf` or truetype font. I find a sans serif fonts seemt to render best. No quotes.
 - `font_size` : This should be very large. `30` was used testing. The image is created at twice the size, and then down-sampled to anti-alias and make it a tweetable size. This was done to improve the rendering of the text.
 - `font_color` : Can be a hexadecimal starting with a `#`. 
