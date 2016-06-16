@@ -11,7 +11,7 @@ This project makes extensive use of the code from the [CommentIQ repository](htt
 
 
 ## Editorial Transparency
-In addition to full source code transparency for the bot, here we provide a more accessible description of the key aspects of the bot. 
+In addition to full source code transparency for the bot, here we provide a more accessible description of the key aspects of the bot. Additionally, some editorial decisions and rules are reflected directly on the [configuration file](https://github.com/comp-journalism/Comment-Bot/blob/master/config/example-bot-NYT.conf) of the bot. 
 
 The goal of Anecbotal is to find interesting anecdotes from comments made on a news article and make them more visible to people tweeting about those stories on Twitter. The hope is that some of the more thoughtful personal stories and opinions that people make in comments can be interesting and engaging content on Twitter as well.
 
@@ -48,7 +48,7 @@ The three scores are weighted in a linear combination in order to calculate an o
 Both reference bots are clearly labeled as a bot in its bio (and with a link to this page) in order to avoid any confusion.
 
 
-## Setup
+## How do I setup my own version of the bot? 
 If you'd like to run this bot (or repurpose it) first clone the repository to your system.
 
 **Keys**  
@@ -134,7 +134,7 @@ This section defines information regarding your chosen background color and if y
 - Stop App to iterate code, start App to test, watch `nohup.txt` populate to check for errors and know when it's tweeted. Check the tweet, stop App, re-code... etc etc and delete tweet so as not to annoy anyone ;)
 - Once happy, change `if self.num_tweets < 1:` back to `10`, undo twitter-bot privacy and edit Bio.
 
-**Tips and Tricks working with Disqus forum queries**
+**Tips and Tricks for working with Disqus forum queries**  
 The Disqus commenting community relies on forums with unique names. Some news organizations like NPR use several section-specific forums (eg `npred` for their education section, and `npr-news` for their general news section). Therefore, be sure to use the correct forum for your Bot. This code does not currently support more than one forum at a time, so you can only have your Bot tweet from one specified forum.
 
 To check you have the correct forum name, use the Disqus console https://disqus.com/api/console/#!/ which you can access after registering your App with Disqus. Here, fill in:
@@ -148,13 +148,13 @@ You'll know it worked when you get a nice JSON response. Now you can enter that 
 
 More Disqus-specific testing tips in [Disqus_testing_README.md](https://github.com/comp-journalism/Comment-Bot/blob/master/doc/Disqus_testing_README.md)
 
-**Testing Image Output**
+**Testing Image Output**  
 Before you test the Bot itself, you might like to get your comment image fixed up just how you like it. To do that you need `bot.conf` and `test_imageModule.py`. Once you have edited the `bot.conf` information with items relevant to testing the image module (including `[TextConfig]` and `[BackgroundConfig]`), you can run the test from the command line using: `python test_imageModle.py`. The image will be output into the same directory as a `.png`.
 
 I recommend only editing the `bot.conf`. However, if you do make any edits to the `image_module` when testing your image output, make sure to reflect those changes in the `image_module` section in the `CommentBot.py` code.
 
 
-### Things to mess with directly in the code:
+### Things you might need to tweak in the code:
 
 **Disqus Forum-Specific URL**
 In `CommentBot.py` starting at line 65:
