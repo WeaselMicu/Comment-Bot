@@ -17,7 +17,7 @@ from TextStatistics import TextStatistics
 porter = nltk.PorterStemmer()
 
 # List of Personal Words from LIWC dictionary
-with open("personal.txt") as f:
+with open("dictionaries/personal.txt") as f:
     personal_words = f.read().splitlines()
 
 def NormalizeContraction(text):
