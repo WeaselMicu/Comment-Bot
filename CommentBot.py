@@ -23,7 +23,7 @@ from requests.packages.urllib3.exceptions import ReadTimeoutError
 
 # Load bot.conf file
 config = ConfigParser.ConfigParser()
-config.read(os.path.dirname(os.path.abspath(__file__)) + "/bot.conf")
+config.read(os.path.dirname(os.path.abspath(__file__)) + "/config/bot.conf")
 
 #  Twitter keys, message, and bot name:
 consumer_key = config.get("TwitterConfig", "consumer_key")
@@ -46,7 +46,7 @@ forum = config.get("CommentConfig", "disqus_forum")
 reputation = config.get("CommentConfig", "reputation")
 
 
-# Read cosmetic info (font, background)
+# Read cosmetic info (t, background)
 font_path = config.get("TextConfig", "font_path")
 Font = config.get("TextConfig", "font")
 font_size = config.get("TextConfig", "font_size")
@@ -110,6 +110,11 @@ class CommentBot(tweepy.StreamListener):
 		# Currently set to track all tweets mentioning nytimes.com, see https://dev.twitter.com/streaming/overview/request-parameters
 		self.filter_object = [filter_object_]  # eg 'nytimes com'
 
+		# Check if there is a valid API specified
+		if API != "NYT" and API != "Disqus":
+			print("No valid API selected")
+			raise Exception()
+
 	# If a Tweet matches the listener criteria, the on_data function is invoked
 	def on_data(self, data):
 		try:
@@ -154,8 +159,7 @@ class CommentBot(tweepy.StreamListener):
 		print(url)
 
 		# Determine if the url is your News Org url by seeing if it includes a specific string e.g. "nytimes" or "nyti.mes", or "npr.org2016" or "n.pr/".
-		if not (news_org_url_1 in url or news_org_url_2 in url):
-			print("Not url 1 or 2")
+		if not (news_org_url_1 in url or news_org_url_2 in url):			
 			return
 
 		self.comments_api_count = self.comments_api_count + 1
@@ -163,21 +167,23 @@ class CommentBot(tweepy.StreamListener):
 		comments_api_key = comments_keys[self.comments_api_count % len(comments_keys)]
 		if API == "NYT":
 			r = requests.get("http://api.nytimes.com/svc/community/v3/user-content/url.json", params={"url": url, "api-key": comments_api_key})
-			print("API = NYT, done requests.get")
+			#print("API = NYT, done requests.get")
 		if API == "Disqus":
 			r = requests.get("http://disqus.com/api/3.0/threads/listPosts.json", params={"thread": 'link:'+url, "api_key": comments_api_key, "forum": forum, "limit":100})
-			print("API = Disqus, done requests.get")
-		if API != "NYT" and API != "Disqus":
-			print("No API selected")
+			#print("API = Disqus, done requests.get")
+		
 		print time.strftime("%H:%M:%S")
-		print "comment API: " + str(self.comments_api_count)
+		print "comment API count: " + str(self.comments_api_count)
 		try:
+			print r.url
 			comments_data = r.json()
 			print(comments_data)
 		except:
 			response = r.text
-			print("Article might use different Disqus forum")
+			print("Comments collection Failed. If using Disqus, article might use different Disqus forum")
 			if response.find("Developer Over Rate"):
+				#print r.headers
+				#print response
 				print "Comments API Rate Limit"
 				self.api_limit_checker()
 			return  # -> This is indented  more than in current Disqus version.
