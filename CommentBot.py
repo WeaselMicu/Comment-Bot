@@ -37,14 +37,16 @@ API = config.get("CommentConfig", "API")
 comments_keys = json.loads(config.get("CommentConfig", "comments_keys"))
 filter_object_ = config.get("CommentConfig", "filter_object")
 min_comments_found = config.get("CommentConfig", "min_comments_found")
-news_org_url_1 = config.get("CommentConfig", "news_org_url_1")
-news_org_url_2 = config.get("CommentConfig", "news_org_url_2")
-#requests_get_URL = config.get("CommentConfig", "requests_get_URL")
+news_org_url = json.loads(config.get("CommentConfig", "news_org_url"))
 
 # Disqus-only things
 forum = config.get("CommentConfig", "disqus_forum")
 reputation = config.get("CommentConfig", "reputation")
 
+# Configuring text analysis weights
+PersonalXP = config.get("ScoreWeightsConfig", "PersonalXP")
+Readability = config.get("ScoreWeightsConfig", "Readability")
+Length = config.get("ScoreWeightsConfig", "Length")
 
 # Read cosmetic info (t, background)
 font_path = config.get("TextConfig", "font_path")
@@ -159,7 +161,8 @@ class CommentBot(tweepy.StreamListener):
 		print(url)
 
 		# Determine if the url is your News Org url by seeing if it includes a specific string e.g. "nytimes" or "nyti.mes", or "npr.org2016" or "n.pr/".
-		if not (news_org_url_1 in url or news_org_url_2 in url):			
+		if any(substring in url for substring in news_org_url) == False:
+			print('news_org_url list items not in url')
 			return
 
 		self.comments_api_count = self.comments_api_count + 1
@@ -167,11 +170,9 @@ class CommentBot(tweepy.StreamListener):
 		comments_api_key = comments_keys[self.comments_api_count % len(comments_keys)]
 		if API == "NYT":
 			r = requests.get("http://api.nytimes.com/svc/community/v3/user-content/url.json", params={"url": url, "api-key": comments_api_key})
-			#print("API = NYT, done requests.get")
 		if API == "Disqus":
 			r = requests.get("http://disqus.com/api/3.0/threads/listPosts.json", params={"thread": 'link:'+url, "api_key": comments_api_key, "forum": forum, "limit":100})
-			#print("API = Disqus, done requests.get")
-		
+
 		print time.strftime("%H:%M:%S")
 		print "comment API count: " + str(self.comments_api_count)
 		try:
@@ -182,11 +183,9 @@ class CommentBot(tweepy.StreamListener):
 			response = r.text
 			print("Comments collection Failed. If using Disqus, article might use different Disqus forum")
 			if response.find("Developer Over Rate"):
-				#print r.headers
-				#print response
 				print "Comments API Rate Limit"
 				self.api_limit_checker()
-			return  # -> This is indented  more than in current Disqus version.
+				return
 
 		if API == 'NYT':
 			num_comments_found = comments_data["results"]["totalParentCommentsFound"]
@@ -235,9 +234,8 @@ class CommentBot(tweepy.StreamListener):
 				self.comments_api_count = self.comments_api_count + 1
 				for comment in comments_data:
 					if comment['parent'] == None:
-						#print("Yeay, a parent!")  # top level parent comments
 						print(comment['author']['reputation'])
-						if comment['author']['reputation'] > int(reputation):   # Trying to only get worthy comments?
+						if comment['author']['reputation'] > float(reputation):   # Trying to only get worthy comments?
 							raw_message = comment['raw_message']
 					# Do a hard filter to remove anything that's less than 25 words
 							if calcLength(raw_message) > 25:
@@ -279,7 +277,7 @@ class CommentBot(tweepy.StreamListener):
 					max_length = comment["Length"]
 
 			# Set weights that are used to linearly weight the sub-scores for the final score
-			score_weights = {"PersonalXP": .5, "Readability": .25, "Length": .25}
+			score_weights = {"PersonalXP": float(PersonalXP), "Readability": float(Readability), "Length": float(Length)}
 
 			# Calculate normalized scores, each is scaled to be between 0 and 1
 			for i, comment in enumerate(tagged_comments):
@@ -366,7 +364,7 @@ class CommentBot(tweepy.StreamListener):
 		# at+" "+
 		# In case you're interested, here's a personal
 		# see here for info on RT quoting a tweet: https://twittercommunity.com/t/method-to-retweet-with-comment/35330/17
-		status = "h/t to " + at + " for sharing this article. Here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
+		status = "HT to " + at + " for sharing this article. Here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
 
 		image = "tweet_reply.png"
 
