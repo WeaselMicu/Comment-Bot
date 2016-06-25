@@ -31,41 +31,44 @@ offset = 1
 # This wrap_text function should not be edited.
 def wrap_text(wrap,font,draw):
   margin = offset = 20
-  margin = 20
   for line in wrap:
     draw.text((margin,offset),line,font=font,fill=font_color)
     offset += font.getsize(line)[1]
 
 #This module takes in the message and converts it to an image. It has internal helper module which help in
 def create_image(message, user, location):
-  print(watermark_logo)
-  wrap = textwrap.wrap(message,width=50) # responds to number of characters in a line. Will wrap text after 50 characters.
-  print(wrap)
-  font = ImageFont.truetype(os.path.join(font_path, Font), int(font_size), encoding='unic') # Need to make use configured fontsize!!
-  
-  # 70 = 35 space at top and bottom; 17 is line height. Correct way would be calculate line height based on font size
-  # replace 70 with 140, and 17 by 34. 17 determins the leading. MIght be different for different fonts.
-  img = Image.new("RGBA", (900,140+34*len(wrap)),background_color)
-  draw = ImageDraw.Draw(img)
-  wrap_text(wrap,font,draw)
-  margin = offset = 20
-  # Define the box which should be the position of the logo on your canvas. Here is Top left corner (800 across; 0 down) and bottom-right corner
-  # 900 across; 100 down. My image dimension is 100 x 100 pixels. )
-  
-  if watermark_logo != "":
-    print "drawing watermark"
-    logo = Image.open(watermark_logo)
-    box = (800, 0, 900, 100)
-    img.paste(logo, box)
 
-  print "drawing rest"
-  draw.text((margin,offset+10+38*len(wrap))," -- "  + user + ", " + location,font=font,fill=font_color) # Make into 'm' dash, not double dash #Values orig (margin, offset+10+17*len(wrap))
-  img_resized = img.resize((450, 70+17*len(wrap)), Image.ANTIALIAS)
-  draw = ImageDraw.Draw(img_resized)
-  img_resized.save("test_TextConfig_resized.png")
+	font = ImageFont.truetype(os.path.join(font_path, Font), int(font_size))
+	margin = offset = 20
 
+	if watermark_logo:
+		wrap = textwrap.wrap(message,width=50)
+	else:
+		# No logo then make the lines a bit wider
+		wrap = textwrap.wrap(message,width=55)
 
-# you can put your own message to test here. Do not `return` at the end of lines. Our `wrap_text` function will wrap for you.
+	line_height = font.getsize(wrap[0])[1]
+	print "line height: " + str(line_height)
+	print wrap
+
+	# Make the image double the size to start with, so that we can apply a anti-alias function when we scale down. Text looks better (I think)
+	# enough space for "margin" at the top and bottom and also a .5 margin between the comment and the attribution
+	img=Image.new("RGBA", (900,int(2.5*margin+line_height*(len(wrap)+1))),(background_color))
+	draw = ImageDraw.Draw(img)
+	wrap_text(wrap,font,draw)
+	draw.text((margin,int(1.5*margin+line_height*len(wrap))), u" \u2014 "  + user + ", " + location,font=font,fill=font_color)
+
+	if watermark_logo:
+		# If there's a logo file provided then make space for it and paste it into the upper right corner.
+		logo = Image.open(watermark_logo)
+		box = (800, 0, 900, 100)
+		img.paste(logo, box)
+
+	img_resized = img.resize((450, int(2.5*.5*margin+(line_height * .5)*(len(wrap)+1))), Image.ANTIALIAS)
+	draw = ImageDraw.Draw(img_resized)
+	img_resized.save("test_tweet_reply.png")
+
+# you can put your own message to test here. Do not `return` at the end of lines. Our `wrap_text` function will wrap for you when making the image.
 message = "The three scores are weighted in a linear combination in order to calculate an overall 'anecbotal' score for each comment. The weights are Length: 0.25, Readability: 0.25, Personal Experience: 0.50 in order to prioritize comments that have substantial personal experience scores. The final comment tweeted out is a random selection from the top 3 comments on an article according to the ranking."
 
 # fake twitter username and location. Only required for this testing script.
