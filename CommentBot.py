@@ -23,7 +23,7 @@ from requests.packages.urllib3.exceptions import ReadTimeoutError
 
 # Load bot.conf file
 config = ConfigParser.ConfigParser()
-config.read(os.path.dirname(os.path.abspath(__file__)) + "/config/bot.conf")
+config.read(os.path.dirname(os.path.abspath(__file__)) + "/config/anecbotalNYT.conf")
 
 #  Twitter keys, message, and bot name:
 consumer_key = config.get("TwitterConfig", "consumer_key")
@@ -176,9 +176,9 @@ class CommentBot(tweepy.StreamListener):
 		print time.strftime("%H:%M:%S")
 		print "comment API count: " + str(self.comments_api_count)
 		try:
-			print r.url
+			#print r.url
 			comments_data = r.json()
-			print(comments_data)
+			#print(comments_data)
 		except:
 			response = r.text
 			print("Comments collection Failed. If using Disqus, article might use different Disqus forum")
@@ -201,10 +201,9 @@ class CommentBot(tweepy.StreamListener):
 
 		# To slow the bot down we only consider every Nth (in this case 10th) tweet
 		self.num_tweets = self.num_tweets + 1
-		print "ntweets: " + str(self.num_tweets)
+		print "Nth Tweet: " + str(self.num_tweets)
 		if self.num_tweets < 10:
 			return
-
 		else:
 			# Get all the comments on the article
 			# Note: Looping through offset only gets you the top level "parent" comments and not the child responses (NYT)
@@ -213,7 +212,7 @@ class CommentBot(tweepy.StreamListener):
 			if API == 'NYT':
 				pagesize = 25
 				offset = 0
-				while offset < comments_found:
+				while offset < num_comments_found:
 					self.api_limit_checker()
 					self.comments_api_count = self.comments_api_count + 1
 					comments_api_key = comments_keys[self.comments_api_count % len(comments_keys)]
@@ -326,7 +325,7 @@ class CommentBot(tweepy.StreamListener):
 				self.old_time = time.time() #Similarly as above, we reset the timer as well since new window has started
 
 		if API == 'NYT':
-			if self.comments_api_count > 5000 * len(comments_keys):
+			if self.comments_api_count > 1000 * len(comments_keys):
 				# once we exhaust NYT API calls we go to sleep for 24 hours
 				print "No more NYT API calls today. Going to sleep for 24 hours, see you tomorrow"
 				self.comments_api_count = 0
@@ -359,12 +358,12 @@ class CommentBot(tweepy.StreamListener):
 
 		# Grab user info and generate text for status
 		user = tweet['user']['screen_name']
-		at = ".@"+user
+		at = "@"+user
 		tweet_id = tweet['id']
 		# at+" "+
 		# In case you're interested, here's a personal
 		# see here for info on RT quoting a tweet: https://twittercommunity.com/t/method-to-retweet-with-comment/35330/17
-		status = "HT to " + at + " for sharing this article. Here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
+		status = "HT " + at + " for sharing an NYT article. Here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
 
 		image = "tweet_reply.png"
 
@@ -375,33 +374,46 @@ class CommentBot(tweepy.StreamListener):
 	#This module allows wrapping the text so that is can be converted to an image properly
 	def wrap_text(self, wrap,font,draw):
 		margin = offset = 20
-		margin = 20
 		for line in wrap:
 			draw.text((margin,offset),line,font=font,fill=font_color)
 			offset += font.getsize(line)[1]
+			#print font.getsize(line)[1]
 
 	#This module takes in the message and converts it to an image. It has internal helper module which help in
 	def create_image(self, message, user, location):
-		wrap = textwrap.wrap(message,width=50)
-		print(wrap)
+		
 		font = ImageFont.truetype(os.path.join(font_path, Font), int(font_size))
+		margin = offset = 20
+
+		# Define the box which should be the position of the logo on your canvas. Here is Top left corner (800 across; 0 down) and bottom-right corner
+		# 900 across; 100 down. Logo dimension is 100 x 100 pixels. )
 		if watermark_logo:
-			logo = Image.open(watermark_logo)
+			wrap = textwrap.wrap(message,width=50)
+		else:
+			# No logo then make the lines a bit wider
+			wrap = textwrap.wrap(message,width=55)
+
+		line_height = font.getsize(wrap[0])[1]
+		print "line height: " + str(line_height)
+		print wrap 
 
 		# Make the image double the size to start with, so that we can apply a antialis function when we scale down. Text looks better (I think)
-		img=Image.new("RGBA", (900,140+34*len(wrap)),(background_color))
+		# enough space for "margin" at the top and bottom and also a .5 margin between the comment and the attribution
+		img=Image.new("RGBA", (900,int(2.5*margin+line_height*(len(wrap)+1))),(background_color))
 		draw = ImageDraw.Draw(img)
-		self.wrap_text(wrap,font,draw)
-		margin = offset = 20
-		# Define the box which should be the position of the logo on your canvas. Here is Top left corner (800 across; 0 down) and bottom-right corner
-		# 900 across; 100 down. My logo dimension is 100 x 100 pixels. )
-		if logo:
+		self.wrap_text(wrap,font,draw)			
+		draw.text((margin,int(1.5*margin+line_height*len(wrap))), u" \u2014 "  + user + ", " + location,font=font,fill=font_color) 
+
+		if watermark_logo:
+			# If there's a logo file provided then make space for it and paste it into the upper right corner
+			logo = Image.open(watermark_logo)
 			box = (800, 0, 900, 100)
 			img.paste(logo, box)
-		draw.text((margin,offset+10+38*len(wrap))," -- "  + user + ", " + location,font=font,fill=font_color) # Make into 'm' dash, not double dash #Values originally (margin, offset+10+17*len(wrap))
-  		img_resized = img.resize((450, 70+17*len(wrap)), Image.ANTIALIAS)
+
+  		img_resized = img.resize((450, int(2.5*.5*margin+(line_height * .5)*(len(wrap)+1))), Image.ANTIALIAS)
   		draw = ImageDraw.Draw(img_resized)
 		img_resized.save("tweet_reply.png")
+		
 
 
 	def on_error(self, status):
