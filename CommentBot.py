@@ -112,6 +112,9 @@ class CommentBot(tweepy.StreamListener):
 		# Currently set to track all tweets mentioning nytimes.com, see https://dev.twitter.com/streaming/overview/request-parameters
 		self.filter_object = [filter_object_]  # eg 'nytimes com'
 
+		# CommentBot needs a reference to the stream so it can disconnect and reconnect after sleeping
+		self.stream = None
+
 		# Check if there is a valid API specified
 		if API != "NYT" and API != "Disqus":
 			print("No valid API selected")
@@ -125,6 +128,7 @@ class CommentBot(tweepy.StreamListener):
 
 		except Exception as e:
 			print "Exception ", e
+			#print data
 			pass
 		return True
 
@@ -157,6 +161,8 @@ class CommentBot(tweepy.StreamListener):
 
 		# Get the URL shared in the tweet
 		url = tweet_data["entities"]["urls"][0]["expanded_url"]
+		if url == None:
+			return
 		url = clean_thread_url(url, forum)
 		print(url)
 
@@ -176,8 +182,9 @@ class CommentBot(tweepy.StreamListener):
 		print time.strftime("%H:%M:%S")
 		print "comment API count: " + str(self.comments_api_count)
 		try:
-			#print r.url
+			print r.url
 			comments_data = r.json()
+			
 			#print(comments_data)
 		except:
 			response = r.text
@@ -186,6 +193,7 @@ class CommentBot(tweepy.StreamListener):
 				print "Comments API Rate Limit"
 				self.api_limit_checker()
 				return
+
 
 		if API == 'NYT':
 			num_comments_found = comments_data["results"]["totalParentCommentsFound"]
@@ -202,7 +210,7 @@ class CommentBot(tweepy.StreamListener):
 		# To slow the bot down we only consider every Nth (in this case 10th) tweet
 		self.num_tweets = self.num_tweets + 1
 		print "Nth Tweet: " + str(self.num_tweets)
-		if self.num_tweets < 10:
+		if self.num_tweets < 3:
 			return
 		else:
 			# Get all the comments on the article
@@ -213,6 +221,7 @@ class CommentBot(tweepy.StreamListener):
 				pagesize = 25
 				offset = 0
 				while offset < num_comments_found:
+					time.sleep (.2) # NYT API is limited to 5 calls per second max
 					self.api_limit_checker()
 					self.comments_api_count = self.comments_api_count + 1
 					comments_api_key = comments_keys[self.comments_api_count % len(comments_keys)]
@@ -309,7 +318,9 @@ class CommentBot(tweepy.StreamListener):
 		self.twitter_api_count = self.twitter_api_count + 1
 
 		# Limit the bot's output by going to sleep for 15 minutes
+		self.stream.disconnect()
 		time.sleep(900)
+		self.stream.filter(track=self.filter_object)
 		return
 
 	#This is the API limit checker function which checks if we do not exceed 140 Tweets per 15 minutes as per Twitter API limits
@@ -320,7 +331,9 @@ class CommentBot(tweepy.StreamListener):
 		else:
 			# If we've surpassed the api count during a 15 minute window
 			if self.twitter_api_count > 140:
+				self.stream.disconnect()
 				time.sleep(900 - (time.time() - self.old_time))	#We put the code to sleep for 15-x minutes where x is the current time - old time (when the window started)... So if within 6 minutes we tweet more than 140 times, then the script will halt for the next 15-6=9 minutes until a new window starts
+				self.stream.filter(track=self.filter_object)
 				self.twitter_api_count = 0	#Since we have slept through the remainder, a new window has started and we reset the API Count as well
 				self.old_time = time.time() #Similarly as above, we reset the timer as well since new window has started
 
@@ -329,13 +342,17 @@ class CommentBot(tweepy.StreamListener):
 				# once we exhaust NYT API calls we go to sleep for 24 hours
 				print "No more NYT API calls today. Going to sleep for 24 hours, see you tomorrow"
 				self.comments_api_count = 0
+				self.stream.disconnect()
 				time.sleep (86400)
+				self.stream.filter(track=self.filter_object)
 		if API == 'Disqus':
 			if self.comments_api_count > 1000 * len(comments_keys):
 				# once we exhaust Disqus API calls we go to sleep for 24 hours
 				print "No more Disqus API calls today. Going to sleep for 24 hours, see you tomorrow"
 				self.comments_api_count = 0
+				self.stream.disconnect()
 				time.sleep (86400)
+				self.stream.filter(track=self.filter_object)
 
 	#This function takes the Tweet JSON as an input
 	#This module takes the Tweet JSON and then calls extract which will help in extracting the key requirements from it
@@ -347,6 +364,9 @@ class CommentBot(tweepy.StreamListener):
 			#text = text.replace('<br/>',' ')
 		if API == 'Disqus':
 			text = '"'+comment["raw_message"]+'"'
+
+		# Replace a double <br/> (a paragraph break) with just a space.
+		text = re.sub("<br\/><br\/>"," ", text)
 		soup = BeautifulSoup(text, "html.parser") # BeautifulSoup still prints that warning...ugh
 		text = soup.get_text()
 		# remove any extra spaces
@@ -360,10 +380,12 @@ class CommentBot(tweepy.StreamListener):
 		user = tweet['user']['screen_name']
 		at = "@"+user
 		tweet_id = tweet['id']
+		url = tweet["entities"]["urls"][0]["expanded_url"]
+		url = clean_thread_url(url, forum)
 		# at+" "+
 		# In case you're interested, here's a personal
 		# see here for info on RT quoting a tweet: https://twittercommunity.com/t/method-to-retweet-with-comment/35330/17
-		status = "HT " + at + " for sharing an NYT article. Here's an anecdote from the article's comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
+		status = "HT " + at + " for sharing this NYT article: " + url + " Here's an anecdote from the comments:" # + "https://twitter.com/"+user+"/status/"+str(tweet_id)
 
 		image = "tweet_reply.png"
 
@@ -372,11 +394,12 @@ class CommentBot(tweepy.StreamListener):
 	#===============Image Module=======================
 	#Since Twitter allows only 140 character limit, we use an image in the reply
 	#This module allows wrapping the text so that is can be converted to an image properly
-	def wrap_text(self, wrap,font,draw):
+	def wrap_text(self, wrap,font,draw,max_line_height):
 		margin = offset = 20
 		for line in wrap:
 			draw.text((margin,offset),line,font=font,fill=font_color)
-			offset += font.getsize(line)[1]
+			offset += max_line_height
+			#offset += font.getsize(line)[1]
 			#print font.getsize(line)[1]
 
 	#This module takes in the message and converts it to an image. It has internal helper module which help in
@@ -384,6 +407,7 @@ class CommentBot(tweepy.StreamListener):
 		
 		font = ImageFont.truetype(os.path.join(font_path, Font), int(font_size))
 		margin = offset = 20
+		attribution_text = u" \u2014 "  + user + ", " + location
 
 		# Define the box which should be the position of the logo on your canvas. Here is Top left corner (800 across; 0 down) and bottom-right corner
 		# 900 across; 100 down. Logo dimension is 100 x 100 pixels. )
@@ -393,16 +417,31 @@ class CommentBot(tweepy.StreamListener):
 			# No logo then make the lines a bit wider
 			wrap = textwrap.wrap(message,width=55)
 
-		line_height = font.getsize(wrap[0])[1]
-		print "line height: " + str(line_height)
+		# The height of different lines sometimes varies but want to make consistent
+		line_heights = []
+		for l in wrap:
+			line_heights.append(font.getsize(l)[1])
+		print(line_heights)
+		max_line_height = max(line_heights)
+
+		text_height = max_line_height * len(wrap)
+		#for l in wrap:
+		#	text_height = text_height + font.getsize(l)[1]
+		#	print(text_height)
+
+		# add in the height of hte attribution text too 
+		attribution_height = font.getsize(attribution_text)[1]
+		#line_height = font.getsize(wrap[0])[1]
+		print "total text height: " + str(text_height + attribution_height)
 		print wrap 
 
+		
 		# Make the image double the size to start with, so that we can apply a antialis function when we scale down. Text looks better (I think)
 		# enough space for "margin" at the top and bottom and also a .5 margin between the comment and the attribution
-		img=Image.new("RGBA", (900,int(2.5*margin+line_height*(len(wrap)+1))),(background_color))
+		img=Image.new("RGBA", (900,int(2.5*margin+text_height+attribution_height)),(background_color))
 		draw = ImageDraw.Draw(img)
-		self.wrap_text(wrap,font,draw)			
-		draw.text((margin,int(1.5*margin+line_height*len(wrap))), u" \u2014 "  + user + ", " + location,font=font,fill=font_color) 
+		self.wrap_text(wrap,font,draw,max_line_height)			
+		draw.text((margin,int(1.5*margin+text_height)), attribution_text,font=font,fill=font_color) 
 
 		if watermark_logo:
 			# If there's a logo file provided then make space for it and paste it into the upper right corner
@@ -410,26 +449,38 @@ class CommentBot(tweepy.StreamListener):
 			box = (800, 0, 900, 100)
 			img.paste(logo, box)
 
-  		img_resized = img.resize((450, int(2.5*.5*margin+(line_height * .5)*(len(wrap)+1))), Image.ANTIALIAS)
+  		img_resized = img.resize((int(img.size[0]*.5), int(img.size[1]*.5)), Image.ANTIALIAS)
   		draw = ImageDraw.Draw(img_resized)
 		img_resized.save("tweet_reply.png")
 		
 
 
 	def on_error(self, status):
-		print ("Tweeting error?", status)
+		print ("This is an on_error() issue", status)
+		if status_code == 420:
+			return False
+
+
+	def on_exception(self, exception):
+		"""Called when an unhandled exception occurs."""
+		print("Here's my on_exception", exception)
+		raise exception
+		return
 
 
 # Function to start the bot listening to the Twitter stream
 def run():
 	#This handles Twitter authetification and the connection to Twitter Streaming API
-	tb = CommentBot()
-	stream = tweepy.Stream(auth, tb)
-
 	try:
-		stream.filter(track=tb.filter_object, async=True)
+		cb = CommentBot()
+		stream = tweepy.Stream(auth, cb)
+		cb.stream = stream
+		stream.filter(track=cb.filter_object) # async=True, 
 	except (Timeout, ssl.SSLError, ReadTimeoutError, ConnectionError, ProtocolError, IncompleteRead, AttributeError) as exc:
-		print ("This is a run error from line 415 ", exc)
+		print ("This is a run() exception ", exc)
 		pass
 	except:
-		pass
+		print ("This is a run() exception 2", exc)
+		pass 
+
+#def start_stream(stream, tb)
