@@ -128,8 +128,10 @@ class CommentBot(tweepy.StreamListener):
 
 		except Exception as e:
 			print "Exception ", e
+			print "returning false from on_data"
+			return False
 			#print data
-			pass
+			#pass
 		return True
 
 	# Editorial logic for bot
@@ -175,24 +177,27 @@ class CommentBot(tweepy.StreamListener):
 		# comments_api_key is a pick of a comments key from the comments_keys list
 		comments_api_key = comments_keys[self.comments_api_count % len(comments_keys)]
 		if API == "NYT":
+			# For some reason this call eventually triggers a recursion limit
 			r = requests.get("http://api.nytimes.com/svc/community/v3/user-content/url.json", params={"url": url, "api-key": comments_api_key})
 		if API == "Disqus":
 			r = requests.get("http://disqus.com/api/3.0/threads/listPosts.json", params={"thread": 'link:'+url, "api_key": comments_api_key, "forum": forum, "limit":100})
 
-		print time.strftime("%H:%M:%S")
+		#print time.strftime("%H:%M:%S")
+		print time.strftime("%c")
 		print "comment API count: " + str(self.comments_api_count)
 		try:
 			print r.url
 			comments_data = r.json()
 			
 			#print(comments_data)
-		except:
 			response = r.text
-			print("Comments collection Failed. If using Disqus, article might use different Disqus forum")
-			if response.find("Developer Over Rate"):
+			#print response
+			if "rate limit exceeded" in response:
 				print "Comments API Rate Limit"
+				self.comments_api_count = 1000 * len(comments_keys) + 1
 				self.api_limit_checker()
-				return
+		except:
+			pass
 
 
 		if API == 'NYT':
@@ -207,10 +212,10 @@ class CommentBot(tweepy.StreamListener):
 		if num_comments_found < int(min_comments_found):
 			return
 
-		# To slow the bot down we only consider every Nth (in this case 10th) tweet
+		# To slow the bot down we only consider every Nth (in this case 2nd) tweet
 		self.num_tweets = self.num_tweets + 1
 		print "Nth Tweet: " + str(self.num_tweets)
-		if self.num_tweets < 3:
+		if self.num_tweets < 2:
 			return
 		else:
 			# Get all the comments on the article
@@ -366,7 +371,7 @@ class CommentBot(tweepy.StreamListener):
 			text = '"'+comment["raw_message"]+'"'
 
 		# Replace a double <br/> (a paragraph break) with just a space.
-		text = re.sub("<br\/><br\/>"," ", text)
+		text = re.sub("<br\/>"," ", text)
 		soup = BeautifulSoup(text, "html.parser") # BeautifulSoup still prints that warning...ugh
 		text = soup.get_text()
 		# remove any extra spaces
@@ -421,7 +426,7 @@ class CommentBot(tweepy.StreamListener):
 		line_heights = []
 		for l in wrap:
 			line_heights.append(font.getsize(l)[1])
-		print(line_heights)
+		#print(line_heights)
 		max_line_height = max(line_heights)
 
 		text_height = max_line_height * len(wrap)
@@ -432,8 +437,11 @@ class CommentBot(tweepy.StreamListener):
 		# add in the height of hte attribution text too 
 		attribution_height = font.getsize(attribution_text)[1]
 		#line_height = font.getsize(wrap[0])[1]
-		print "total text height: " + str(text_height + attribution_height)
-		print wrap 
+		#print "total text height: " + str(text_height + attribution_height)
+		#print wrap 
+		print("TWEETING")
+		print time.strftime("%c")
+		print message.encode('utf-8')
 
 		
 		# Make the image double the size to start with, so that we can apply a antialis function when we scale down. Text looks better (I think)
@@ -454,33 +462,15 @@ class CommentBot(tweepy.StreamListener):
 		img_resized.save("tweet_reply.png")
 		
 
-
-	def on_error(self, status):
-		print ("This is an on_error() issue", status)
-		if status_code == 420:
-			return False
-
-
 	def on_exception(self, exception):
 		"""Called when an unhandled exception occurs."""
 		print("Here's my on_exception", exception)
 		raise exception
 		return
 
+cb = CommentBot()
 
 # Function to start the bot listening to the Twitter stream
 def run():
-	#This handles Twitter authetification and the connection to Twitter Streaming API
-	try:
-		cb = CommentBot()
-		stream = tweepy.Stream(auth, cb)
-		cb.stream = stream
-		stream.filter(track=cb.filter_object) # async=True, 
-	except (Timeout, ssl.SSLError, ReadTimeoutError, ConnectionError, ProtocolError, IncompleteRead, AttributeError) as exc:
-		print ("This is a run() exception ", exc)
-		pass
-	except:
-		print ("This is a run() exception 2", exc)
-		pass 
-
-#def start_stream(stream, tb)
+	cb.stream = tweepy.Stream(auth, cb)
+	cb.stream.filter(track=cb.filter_object) # async=True, 
